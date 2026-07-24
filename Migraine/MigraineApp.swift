@@ -27,7 +27,7 @@ struct MigraineApp: App {
     var body: some Scene {
         WindowGroup {
             TabView {
-                MainView()
+                DoseMainView()
                     .tabItem {
                         Label("Doses", systemImage: "pills")
                     }

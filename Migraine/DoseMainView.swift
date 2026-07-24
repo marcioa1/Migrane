@@ -1,5 +1,5 @@
 //
-//  MainView.swift
+//  DoseMainView.swift
 //  Migraine
 //
 //  Created by Marcio Aun Migueis on 03/04/26.
@@ -8,7 +8,7 @@
 import SwiftUI
 import SwiftData
 
-struct MainView: View {
+struct DoseMainView: View {
     @Environment(\.modelContext) private var modelContext
     
     @State private var showingDoseForm = false
@@ -95,6 +95,6 @@ struct TimeSinceLastCrises: View {
 }
 
 #Preview {
-    MainView()
+    DoseMainView()
         .modelContainer(for: Dose.self, inMemory: true)
 }
