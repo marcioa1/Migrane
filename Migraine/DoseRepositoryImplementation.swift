@@ -19,9 +19,7 @@ class DoseRepositoryImplementation: DoseRepository {
         let descriptor = FetchDescriptor<Dose>(
             sortBy: [SortDescriptor(\.date, order: .reverse)]
         )
-        return try modelContext.fetch(descriptor).map { dose in
-            Dose(id: dose.id, date: dose.date, medicine: dose.medicine, side: dose.side, note: dose.note)
-        }
+        return try modelContext.fetch(descriptor)
     }
     
     func addDose(_ dose: Dose) throws {
