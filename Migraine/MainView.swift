@@ -57,10 +57,10 @@ struct MainView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showingDoseForm) {
+            .sheet(isPresented: $showingDoseForm, onDismiss: { viewModel?.loadDoses() }) {
                 DoseFormView()
             }
-            .sheet(item: $doseToEdit) { dose in
+            .sheet(item: $doseToEdit, onDismiss: { viewModel?.loadDoses() }) { dose in
                 DoseFormView(doseToEdit: dose)
             }
             .task {
