@@ -10,11 +10,10 @@ import SwiftData
 
 struct MainView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \Dose.date, order: .reverse) private var doses: [Dose]
     
     @State private var showingDoseForm = false
     @State private var doseToEdit: Dose?
-    
+    @State private var viewModel: DoseRepositoryViewModel?
     
     init() {
         // For Large Titles
@@ -22,33 +21,25 @@ struct MainView: View {
         
         // For Inline (Standard) Titles
         UINavigationBar.appearance().titleTextAttributes = [.foregroundColor: UIColor.white]
+        
     }
     
     var body: some View {
         NavigationStack {
             List {
-                if let firstDose = doses.first {
+                if let firstDose = viewModel?.doses.first {
                     let interval = Date.now.timeIntervalSince(firstDose.date)
                     TimeSinceLastCrises(interval: interval)
                 }
-                ForEach(Array(doses.enumerated()), id: \.element.id) { index, dose in
-                    Button {
+                ForEach(Array((viewModel?.doses ?? []).enumerated()), id: \.element.id) { index, dose in
+                    DoseListRowView(dose: dose) {
                         doseToEdit = dose
-                    } label: {
-                        DoseRowView(dose: dose)
-                    }
-                    .tint(.primary)
-                    .listRowBackground(Color.orange)
-                    .swipeActions(edge: .trailing) {
-                        Button(role: .destructive) {
-                            modelContext.delete(dose)
-                        } label: {
-                            Label("Delete", systemImage: "trash")
-                        }
+                    } onDelete: {
+                        modelContext.delete(dose)
                     }
                     
-                    if index < doses.count - 1 {
-                        let next = doses[index + 1]
+                    if let viewModel, index < viewModel.doses.count - 1 {
+                        let next = viewModel.doses[index + 1]
                         let interval = dose.date.timeIntervalSince(next.date)
                         TimeSinceLastCrises(interval: interval)
                     }
@@ -71,6 +62,10 @@ struct MainView: View {
             }
             .sheet(item: $doseToEdit) { dose in
                 DoseFormView(doseToEdit: dose)
+            }
+            .task {
+                viewModel = DoseRepositoryViewModel(repository: DoseRepositoryImplementation(modelContext: modelContext))
+                viewModel?.loadDoses()
             }
         }
     }
