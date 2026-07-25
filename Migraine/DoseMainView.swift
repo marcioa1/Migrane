@@ -74,12 +74,10 @@ struct DoseMainView: View {
                     DoseFormView(doseToEdit: dose)
                 }
                 
-            case .error:
+            case .error, .none:
                 Text("Error loading data.")
             case .loading:
                 ProgressView()
-            case .none:
-                EmptyView()
             }
         }
         .task {
