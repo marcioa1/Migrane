@@ -14,6 +14,7 @@ struct DoseMainView: View {
     @State private var showingDoseForm = false
     @State private var doseToEdit: Dose?
     @State private var viewModel: DoseRepositoryViewModel?
+    @State private var loading: LoadingState = .loading
     
     init() {
         // For Large Titles
@@ -25,48 +26,65 @@ struct DoseMainView: View {
     }
     
     var body: some View {
-        NavigationStack {
-            List {
-                if let firstDose = viewModel?.doses.first {
-                    let interval = Date.now.timeIntervalSince(firstDose.date)
-                    TimeSinceLastCrises(interval: interval)
-                }
-                ForEach(Array((viewModel?.doses ?? []).enumerated()), id: \.element.id) { index, dose in
-                    DoseListRowView(dose: dose) {
-                        doseToEdit = dose
-                    } onDelete: {
-                        modelContext.delete(dose)
+        VStack {
+            switch viewModel?.loadingState {
+            case .success:
+                NavigationStack {
+                    List {
+                        if let firstDose = viewModel?.doses.first {
+                            let interval = Date.now.timeIntervalSince(firstDose.date)
+                            TimeSinceLastCrises(interval: interval)
+                        }
+                        ForEach(Array((viewModel?.doses ?? []).enumerated()), id: \.element.id) { index, dose in
+                            DoseListRowView(dose: dose) {
+                                doseToEdit = dose
+                            } onDelete: {
+                                modelContext.delete(dose)
+                            }
+                            
+                            if let viewModel, index < viewModel.doses.count - 1 {
+                                let next = viewModel.doses[index + 1]
+                                let interval = dose.date.timeIntervalSince(next.date)
+                                TimeSinceLastCrises(interval: interval)
+                            }
+                        }
                     }
-                    
-                    if let viewModel, index < viewModel.doses.count - 1 {
-                        let next = viewModel.doses[index + 1]
-                        let interval = dose.date.timeIntervalSince(next.date)
-                        TimeSinceLastCrises(interval: interval)
+                    .scrollContentBackground(.hidden)
+                    .background(Color("BackgroundColor"))
+                    .navigationTitle("Doses")
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button {
+                                showingDoseForm = true
+                            } label: {
+                                Label("Add Dose", systemImage: "plus")
+                            }
+                        }
                     }
                 }
-            }
-            .scrollContentBackground(.hidden)
-            .background(Color("BackgroundColor"))
-            .navigationTitle("Doses")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showingDoseForm = true
-                    } label: {
-                        Label("Add Dose", systemImage: "plus")
-                    }
+                
+                .sheet(isPresented: $showingDoseForm, onDismiss: {
+                    Task { await viewModel?.loadDoses() }
+                }) {
+                    DoseFormView()
                 }
+                .sheet(item: $doseToEdit, onDismiss: {
+                    Task { await viewModel?.loadDoses() }
+                }) { dose in
+                    DoseFormView(doseToEdit: dose)
+                }
+                
+            case .error:
+                Text("Error loading data.")
+            case .loading:
+                ProgressView()
+            case .none:
+                EmptyView()
             }
-            .sheet(isPresented: $showingDoseForm, onDismiss: { viewModel?.loadDoses() }) {
-                DoseFormView()
-            }
-            .sheet(item: $doseToEdit, onDismiss: { viewModel?.loadDoses() }) { dose in
-                DoseFormView(doseToEdit: dose)
-            }
-            .task {
-                viewModel = DoseRepositoryViewModel(repository: DoseRepositoryImplementation(modelContext: modelContext))
-                viewModel?.loadDoses()
-            }
+        }
+        .task {
+            viewModel = DoseRepositoryViewModel(repository: DoseRepositoryImplementation(modelContext: modelContext))
+            await viewModel?.loadDoses()
         }
     }
 }

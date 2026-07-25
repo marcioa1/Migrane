@@ -7,6 +7,6 @@
 
 @MainActor
 protocol DoseRepository {
-    func fecthDoses() throws -> [Dose]
+    func fecthDoses() async throws -> [Dose]
     func addDose(_ dose: Dose) throws
 }
