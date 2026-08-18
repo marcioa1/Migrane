@@ -8,6 +8,7 @@
 import SwiftUI
 
 protocol MonthNavigating: AnyObject {
+    var monthLabel: String { get }
     func goToPreviousMonth()
     func goToNextMonth()
 }

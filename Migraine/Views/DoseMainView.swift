@@ -13,7 +13,8 @@ struct DoseMainView: View {
     
     @State private var showingDoseForm = false
     @State private var doseToEdit: Dose?
-    @State private var viewModel: DoseRepositoryViewModel = DoseRepositoryViewModel()
+//    @State private var repositoryViewModel: DoseRepositoryViewModel = DoseRepositoryViewModel()
+    @State private var viewModel = MainDoseViewModel()
     @State private var loading: LoadingState = .loading
     
     init() {
@@ -30,7 +31,7 @@ struct DoseMainView: View {
             switch viewModel.loadingState {
             case .success:
                 NavigationStack {
-                    MonthButton(direction: .previous, viewModel: viewModel)
+                    MonthSelectionView(viewModel: viewModel)
                     List {
                         if let firstDose = viewModel.doses.first {
                             let interval = Date.now.timeIntervalSince(firstDose.date)

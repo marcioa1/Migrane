@@ -18,17 +18,7 @@ struct CalendarView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 16) {
-                HStack {
-                    MonthButton(direction: .previous, viewModel: viewModel)
-                    Spacer()
-                    Text(viewModel.monthLabel)
-                        .font(.headline)
-                        .foregroundStyle(.white)
-                    Spacer()
-                    MonthButton(direction: .next, viewModel: viewModel)
-                }
-                .padding(.horizontal)
-
+                MonthSelectionView(viewModel: viewModel)
                 LazyVGrid(columns: columns, spacing: 8) {
                     ForEach(weekdaySymbols, id: \.self) { symbol in
                         Text(symbol)
