@@ -7,6 +7,13 @@
 
 import SwiftUI
 
+protocol MonthNavigating: AnyObject {
+    func goToPreviousMonth()
+    func goToNextMonth()
+}
+
+extension MonthlyChartViewModel: MonthNavigating {}
+
 enum MonthNavigation {
     case previous
     case next
@@ -14,7 +21,7 @@ enum MonthNavigation {
 
 struct MonthButton: View {
     let direction: MonthNavigation
-    let viewModel: MonthlyChartViewModel
+    let viewModel: any MonthNavigating
 
     var body: some View {
         switch self.direction {

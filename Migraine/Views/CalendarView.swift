@@ -10,9 +10,8 @@ import SwiftData
 
 struct CalendarView: View {
     @Query(sort: \Dose.date, order: .reverse) private var doses: [Dose]
-    @State private var viewModel = MonthlyChartViewModel()
+    @State private var viewModel = CalendarViewModel()
 
-    private let calendar = Calendar.current
     private let weekdaySymbols = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
     private let columns = Array(repeating: GridItem(.flexible()), count: 7)
 
@@ -38,9 +37,9 @@ struct CalendarView: View {
                             .foregroundStyle(.white.opacity(0.6))
                     }
 
-                    ForEach(Array(calendarDays.enumerated()), id: \.offset) { offset, date in
+                    ForEach(Array(viewModel.calendarDays.enumerated()), id: \.offset) { offset, date in
                         if let date {
-                            CalendarDayCell(date: date, dosesCount: dosesCount(for: date))
+                            CalendarDayCell(date: date, dosesCount: viewModel.dosesCount(for: date, in: doses))
                         } else {
                             Color.clear.frame(height: 44)
                         }
@@ -54,27 +53,6 @@ struct CalendarView: View {
             .background(Color("BackgroundColor"))
             .navigationTitle("Calendar")
         }
-    }
-
-    private var calendarDays: [Date?] {
-        let components = calendar.dateComponents([.year, .month], from: viewModel.displayedMonth)
-        guard let firstDay = calendar.date(from: components),
-              let daysRange = calendar.range(of: .day, in: .month, for: firstDay) else {
-            return []
-        }
-
-        let firstWeekday = calendar.component(.weekday, from: firstDay)
-        var days: [Date?] = Array(repeating: nil, count: firstWeekday - 1)
-        for day in daysRange {
-            if let date = calendar.date(byAdding: .day, value: day - 1, to: firstDay) {
-                days.append(date)
-            }
-        }
-        return days
-    }
-
-    private func dosesCount(for date: Date) -> Int {
-        doses.filter { calendar.isDate($0.date, inSameDayAs: date) }.count
     }
 }
 

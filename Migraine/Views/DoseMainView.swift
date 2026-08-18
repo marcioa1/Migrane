@@ -13,7 +13,7 @@ struct DoseMainView: View {
     
     @State private var showingDoseForm = false
     @State private var doseToEdit: Dose?
-    @State private var viewModel: DoseRepositoryViewModel?
+    @State private var viewModel: DoseRepositoryViewModel = DoseRepositoryViewModel()
     @State private var loading: LoadingState = .loading
     
     init() {
@@ -27,22 +27,23 @@ struct DoseMainView: View {
     
     var body: some View {
         VStack {
-            switch viewModel?.loadingState {
+            switch viewModel.loadingState {
             case .success:
                 NavigationStack {
+                    MonthButton(direction: .previous, viewModel: viewModel)
                     List {
-                        if let firstDose = viewModel?.doses.first {
+                        if let firstDose = viewModel.doses.first {
                             let interval = Date.now.timeIntervalSince(firstDose.date)
                             TimeSinceLastCrises(interval: interval)
                         }
-                        ForEach(Array((viewModel?.doses ?? []).enumerated()), id: \.element.id) { index, dose in
+                        ForEach(Array((viewModel.doses).enumerated()), id: \.element.id) { index, dose in
                             DoseListRowView(dose: dose) {
                                 doseToEdit = dose
                             } onDelete: {
                                 modelContext.delete(dose)
                             }
                             
-                            if let viewModel, index < viewModel.doses.count - 1 {
+                            if index < viewModel.doses.count - 1 {
                                 let next = viewModel.doses[index + 1]
                                 let interval = dose.date.timeIntervalSince(next.date)
                                 TimeSinceLastCrises(interval: interval)
@@ -64,25 +65,25 @@ struct DoseMainView: View {
                 }
                 
                 .sheet(isPresented: $showingDoseForm, onDismiss: {
-                    Task { await viewModel?.loadDoses() }
+                    Task { await viewModel.loadDoses() }
                 }) {
                     DoseFormView()
                 }
                 .sheet(item: $doseToEdit, onDismiss: {
-                    Task { await viewModel?.loadDoses() }
+                    Task { await viewModel.loadDoses() }
                 }) { dose in
                     DoseFormView(doseToEdit: dose)
                 }
-                
-            case .error, .none:
-                Text("Error loading data.")
             case .loading:
                 ProgressView()
+            case .error:
+                // TODO missing implementation
+                let _ = print("Error")
             }
         }
         .task {
-            viewModel = DoseRepositoryViewModel(repository: DoseRepositoryImplementation(modelContext: modelContext))
-            await viewModel?.loadDoses()
+            viewModel.configure(repository: DoseRepositoryImplementation(modelContext: modelContext))
+            await viewModel.loadDoses()
         }
     }
 }
