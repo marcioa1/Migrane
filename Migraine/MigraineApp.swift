@@ -34,6 +34,10 @@ struct MigraineApp: App {
                     .tabItem {
                         Label("Monthly", systemImage: "chart.bar")
                     }
+                CalendarView()
+                    .tabItem {
+                        Label("Calendar", systemImage: "calendar")
+                    }
             }
         }
         .modelContainer(sharedModelContainer)
