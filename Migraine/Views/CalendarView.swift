@@ -15,18 +15,21 @@ struct CalendarView: View {
     private let weekdaySymbols = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
     private let columns = Array(repeating: GridItem(.flexible()), count: 7)
 
+    fileprivate func showWeekDays() -> ForEach<[String], String, Text> {
+        return ForEach(weekdaySymbols, id: \.self) { symbol in
+            Text(symbol)
+                .font(.caption)
+                .fontWeight(.semibold)
+                .foregroundStyle(.white.opacity(0.6))
+        }
+    }
+    
     var body: some View {
         NavigationStack {
             VStack(spacing: 16) {
                 MonthSelectionView(viewModel: viewModel)
                 LazyVGrid(columns: columns, spacing: 8) {
-                    ForEach(weekdaySymbols, id: \.self) { symbol in
-                        Text(symbol)
-                            .font(.caption)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(.white.opacity(0.6))
-                    }
-
+                    showWeekDays()
                     ForEach(Array(viewModel.calendarDays.enumerated()), id: \.offset) { offset, date in
                         if let date {
                             CalendarDayCell(date: date, dosesCount: viewModel.dosesCount(for: date, in: doses))
@@ -59,10 +62,18 @@ struct CalendarDayCell: View {
                 Circle()
                     .fill(Color.red.opacity(0.75))
                     .frame(width: 38, height: 38)
-            } else if isToday {
-                Circle()
-                    .strokeBorder(Color.white.opacity(0.6), lineWidth: 1.5)
-                    .frame(width: 38, height: 38)
+            }
+            if isToday {
+                if dosesCount == 0 {
+                    Circle()
+                        .strokeBorder(Color.white.opacity(0.6), lineWidth: 1.5)
+                        .frame(width: 38, height: 38)
+                } else {
+                    Capsule()
+                        .fill(Color.white)
+                        .frame(width: 16, height: 2)
+                        .offset(y: 22)
+                }
             }
 
             VStack(spacing: 1) {
