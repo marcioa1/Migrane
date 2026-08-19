@@ -45,8 +45,6 @@ struct DoseMainView: View {
             case .success:
                 VStack(spacing: 0) {
                     HeaderView(showingDoseForm: $showingDoseForm)
-                    //(Color("BackgroundColor"))
-
                     MonthSelectionView(viewModel: viewModel)
                         .background(Color("BackgroundColor"))
                         .padding(.bottom, 8)
@@ -85,6 +83,10 @@ struct DoseMainView: View {
                 }
             case .loading:
                 ProgressView()
+                    .tint(.white)
+                    .scaleEffect(2.0)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color("BackgroundColor"))
             case .error:
                 // TODO missing implementation
                 let _ = print("Error")
