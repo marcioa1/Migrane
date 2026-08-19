@@ -13,25 +13,43 @@ struct DoseMainView: View {
     
     @State private var showingDoseForm = false
     @State private var doseToEdit: Dose?
-//    @State private var repositoryViewModel: DoseRepositoryViewModel = DoseRepositoryViewModel()
     @State private var viewModel = MainDoseViewModel()
     @State private var loading: LoadingState = .loading
     
-    init() {
-        // For Large Titles
-        UINavigationBar.appearance().largeTitleTextAttributes = [.foregroundColor: UIColor.white]
+    fileprivate struct HeaderView: View {
+        @Binding var showingDoseForm: Bool
         
-        // For Inline (Standard) Titles
-        UINavigationBar.appearance().titleTextAttributes = [.foregroundColor: UIColor.white]
-        
+        var body: some View {
+            HStack {
+                Text("Doses")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundStyle(.white)
+                Spacer()
+                Button {
+                    showingDoseForm = true
+                } label: {
+                    Label("Add Dose", systemImage: "plus")
+                        .foregroundStyle(.white)
+                }
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 12)
+            .background(Color("BackgroundColor"))
+        }
     }
     
     var body: some View {
-        VStack {
+        Group {
             switch viewModel.loadingState {
             case .success:
-                NavigationStack {
+                VStack(spacing: 0) {
+                    HeaderView(showingDoseForm: $showingDoseForm)
+                    //(Color("BackgroundColor"))
+
                     MonthSelectionView(viewModel: viewModel)
+                        .background(Color("BackgroundColor"))
+                        .padding(.bottom, 8)
                     List {
                         if let firstDose = viewModel.doses.first {
                             let interval = Date.now.timeIntervalSince(firstDose.date)
@@ -43,7 +61,7 @@ struct DoseMainView: View {
                             } onDelete: {
                                 modelContext.delete(dose)
                             }
-                            
+
                             if index < viewModel.doses.count - 1 {
                                 let next = viewModel.doses[index + 1]
                                 let interval = dose.date.timeIntervalSince(next.date)
@@ -53,18 +71,8 @@ struct DoseMainView: View {
                     }
                     .scrollContentBackground(.hidden)
                     .background(Color("BackgroundColor"))
-                    .navigationTitle("Doses")
-                    .toolbar {
-                        ToolbarItem(placement: .topBarTrailing) {
-                            Button {
-                                showingDoseForm = true
-                            } label: {
-                                Label("Add Dose", systemImage: "plus")
-                            }
-                        }
-                    }
                 }
-                
+                .background(Color("BackgroundColor"))
                 .sheet(isPresented: $showingDoseForm, onDismiss: {
                     Task { await viewModel.loadDoses() }
                 }) {

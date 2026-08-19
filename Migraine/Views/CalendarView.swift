@@ -11,10 +11,10 @@ import SwiftData
 struct CalendarView: View {
     @Query(sort: \Dose.date, order: .reverse) private var doses: [Dose]
     @State private var viewModel = CalendarViewModel()
-
+    
     private let weekdaySymbols = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
     private let columns = Array(repeating: GridItem(.flexible()), count: 7)
-
+    
     fileprivate func showWeekDays() -> ForEach<[String], String, Text> {
         return ForEach(weekdaySymbols, id: \.self) { symbol in
             Text(symbol)
@@ -24,38 +24,49 @@ struct CalendarView: View {
         }
     }
     
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 16) {
-                MonthSelectionView(viewModel: viewModel)
-                LazyVGrid(columns: columns, spacing: 8) {
-                    showWeekDays()
-                    ForEach(Array(viewModel.calendarDays.enumerated()), id: \.offset) { offset, date in
-                        if let date {
-                            CalendarDayCell(date: date, dosesCount: viewModel.dosesCount(for: date, in: doses))
-                        } else {
-                            Color.clear.frame(height: 44)
-                        }
-                    }
-                }
-                .padding(.horizontal)
-
+    var header: some View {
+        VStack(spacing: 16) {
+            HStack {
+                Text("Calendar")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundStyle(.white)
                 Spacer()
             }
-            .padding(.top)
-            .background(Color("BackgroundColor"))
-            .navigationTitle("Calendar")
+            MonthSelectionView(viewModel: viewModel)
         }
+    }
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            header
+              .padding(16)
+            
+            LazyVGrid(columns: columns, spacing: 8) {
+                showWeekDays()
+                ForEach(Array(viewModel.calendarDays.enumerated()), id: \.offset) { offset, date in
+                    if let date {
+                        CalendarDayCell(date: date, dosesCount: viewModel.dosesCount(for: date, in: doses))
+                    } else {
+                        Color.clear.frame(height: 44)
+                    }
+                }
+            }
+            .padding(.horizontal)
+            Spacer()
+        }
+        .padding(.top)
+        .background(Color("BackgroundColor"))
     }
 }
 
 struct CalendarDayCell: View {
     let date: Date
     let dosesCount: Int
-
+    
     private var day: Int { Calendar.current.component(.day, from: date) }
     private var isToday: Bool { Calendar.current.isDateInToday(date) }
-
+    
     var body: some View {
         ZStack {
             if dosesCount > 0 {
@@ -75,7 +86,7 @@ struct CalendarDayCell: View {
                         .offset(y: 22)
                 }
             }
-
+            
             VStack(spacing: 1) {
                 Text("\(day)")
                     .font(.system(size: 15, weight: isToday ? .semibold : .regular))
